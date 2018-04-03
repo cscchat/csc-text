@@ -17,7 +17,7 @@ class CscPrice {
       },
       fetchPrice: (Currency) => {
         return new Promise((resolve, reject) => {
-          let Url = 'https://www.bitstamp.net/api/v2/ticker/xrp' + Currency.toLowerCase().trim() + '/'
+          let Url = 'https://www.bitstamp.net/api/v2/ticker/csc' + Currency.toLowerCase().trim() + '/'
           fetch(Url).then((r) => {
             return r.json()
           }).then((r) => {
