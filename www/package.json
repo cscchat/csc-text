@@ -1,8 +1,8 @@
 {
-  "name": "xrp-ledger-stats",
+  "name": "csc-ledger-stats",
   "version": "1.0.0",
-  "description": "XRP Ledger Stats (xrpstats.xrptipbot.com)",
-  "author": "Wietse Wind <mail@wietse.com>",
+  "description": "CSC Ledger Stats (cscstats.csctipbot.com)",
+  "author": "CSC Chat <support@cscchat.com>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",

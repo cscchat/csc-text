@@ -10,8 +10,8 @@
       "token": "8ba9...bd1b",
       "defaultno": "+3112...9330"
     },
-    "ripple": {
-      "server": "wss://s1.ripple.com",
+    "casinocoin": {
+      "server": "wss://ws01.casinocoin.org:4443",
       "account": "rHE...3G",
       "keypair": {
         "publicKey": "03b..9acd",
@@ -23,7 +23,7 @@
         "host": "localhost",
         "username": "user",
         "password": "pass",
-        "database": "xrptext"
+        "database": "csctext"
       }
     }
   }

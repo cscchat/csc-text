@@ -8,12 +8,12 @@ self(){
 echo "Stop and remove existing container"
 $(self)/down
 
-if [[ $(docker images -a|grep xrptext:latest|wc -l) -gt "0" ]]; then
+if [[ $(docker images -a|grep csctext:latest|wc -l) -gt "0" ]]; then
     echo "Removing image"
-    docker rmi -f xrptext:latest
+    docker rmi -f csctext:latest
 fi
 
 echo "Building image"
-docker build --tag xrptext:latest $(self)/../.
+docker build --tag csctext:latest $(self)/../.
 
 echo "Done, you can now run $(self)/up"

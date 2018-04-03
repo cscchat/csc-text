@@ -15,6 +15,6 @@ if [[ "$CUSTOMPORT" -gt "0" ]]; then
     PORT=$1
 fi
 
-docker run -d --name xrptext -p $PORT:4000 --restart=always xrptext:latest
+docker run -d --name csctext -p $PORT:4000 --restart=always csctext:latest
 
-docker logs -f xrptext
+docker logs -f csctext

@@ -56,21 +56,21 @@ module.exports = (message, price) => {
     }
 
     if (parsed.valid) {
-      let currency = 'XRP'
-      if (parsed.currency !== 'XRP' && parsed.currency !== null) {
+      let currency = 'CSC'
+      if (parsed.currency !== 'CSC' && parsed.currency !== null) {
         if (Object.keys(price.price).indexOf(parsed.currency.toLowerCase()) < 0) {
           parsed.valid = false
           let currencies = Object.keys(price.price).join(', ').toUpperCase()
-          parseMessage = `Unknown currency: ${parsed.currency}. Supported currencies: XRP, ${currencies}.`
+          parseMessage = `Unknown currency: ${parsed.currency}. Supported currencies: CSC, ${currencies}.`
         } else {
           currency = parsed.currency
-          amount = price.getXrp(parsed.currency, amount)
+          amount = price.getCsc(parsed.currency, amount)
         }
       }
     }
 
     if (parsed.valid) {
-      parsed.amount.xrp = amount
+      parsed.amount.csc = amount
       Object.keys(price.price).forEach((c) => {
         parsed.amount[c.toLowerCase()] = price.get(c, amount)
       })

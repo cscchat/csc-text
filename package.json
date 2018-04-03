@@ -1,16 +1,16 @@
 {
-  "name": "xrp-text",
+  "name": "csc-text",
   "version": "1.0.0",
-  "author": "Wietse Wind <mail@wietse.com>",
-  "description": "XRP microtransactions using SMS Text Messages (Twilio)",
+  "author": "CSC Chat <support@cscchat.com>",
+  "description": "CSC microtransactions using SMS Text Messages (Twilio)",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "google-libphonenumber": "^3.1.2",
     "mysql": "^2.15.0",
     "node-fetch": "^2.1.1",
-    "rippled-ws-client": "0.0.3",
-    "rippled-ws-client-sign": "0.0.3",
+    "casinocoind-ws-client": "^0.0.5",
+    "casinocoind-ws-client-sign": "^0.0.1",
     "twilio": "^3.14.0",
     "websocket": "^1.0.25"
   },
@@ -24,12 +24,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/WietseWind/xrp-text.git"
+    "url": "git://github.com/cscchat/csc-text.git"
   },
   "bugs": {
-    "url": "https://github.com/WietseWind/xrp-text/issues"
+    "url": "https://github.com/cscchat/csc-text/issues"
   },
-  "homepage": "https://github.com/WietseWind/xrp-text#readme",
+  "homepage": "https://github.com/cscchat/csc-text#readme",
   "license": "MIT",
   "readmeFilename": "README.md",
   "eslintConfig": {

@@ -2,7 +2,7 @@
 
 const fetch = require('node-fetch')
 
-class XrpPrice {
+class CscPrice {
   constructor () {
     Object.assign(this, {
       price: {
@@ -12,7 +12,7 @@ class XrpPrice {
       get: (Currency, Amount) => {
         return Math.floor(parseFloat(Amount) * this.price[Currency.toLowerCase().trim()] * 100) / 100
       },
-      getXrp: (Currency, Amount) => {
+      getCsc: (Currency, Amount) => {
         return Math.floor(parseFloat(Amount) / this.price[Currency.toLowerCase().trim()] * 1000000) / 1000000
       },
       fetchPrice: (Currency) => {
@@ -48,4 +48,4 @@ class XrpPrice {
   }
 }
 
-module.exports = XrpPrice
+module.exports = CscPrice

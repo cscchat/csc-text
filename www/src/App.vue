@@ -7,17 +7,20 @@
     <footer class="footer">
       <div class="container text-center">
         <small>
-          <span class="text-muted">By <a href="https://twitter.com/WietseWind" target="_blank">@WietseWind</a></span>
+          <span class="text-muted">By <a href="https://twitter.com/cscchat" target="_blank">@cscchat</a></span>
           &dash;
-          <span class="text-muted"><a href="https://xrptipbot.com" target="_blank">xrptipbot.com</a></span>
+          <span class="text-muted"><a href="https://csctipbot.com" target="_blank">csctipbot.com</a></span>
           &dash;
           <span class="text-muted"><a href="https://ledger.exposed" target="_blank">ledger.exposed</a></span>
           &dash;
           Github:
-          <span class="text-muted"><a href="https://github.com/WietseWind/Xrp-Text" target="_blank">Source</a></span>
+          <span class="text-muted"><a href="https://github.com/cscchat/Csc-Text" target="_blank">Source</a></span>
           &dash;
           Design by
           <span class="text-muted"><a href="http://twitter.com/dappyroots" target="_blank">@dappyroots</a></span>
+          &dash;
+          Based on
+          <span class="text-muted"><a href="https://github.com/WietseWind/Xrp-Text" target="_blank">Xrp-Text bot by Wietse Wind</a></span>
         </small>
       </div>
     </footer>

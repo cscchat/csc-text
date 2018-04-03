@@ -1,13 +1,13 @@
 const _config = require('./src/LoadConfig')
 const _database = _config.then((c) => { return new (require('./src/Database'))(c) })
-const _rippled = _config.then((c) => { return new (require('./src/ConnectRippled'))(c) })
+const _casinocoind = _config.then((c) => { return new (require('./src/ConnectCasinocoind'))(c) })
 const _twilio = _config.then((c) => { return new (require('./src/TwilioServer'))(c) })
 
-const price = new (require('./src/XrpPrice'))()
+const price = new (require('./src/CscPrice'))()
 
-Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
+Promise.all([ _config, _casinocoind, _twilio, _database ]).then((values) => {
   const config = values[0]
-  const rippled = values[1]
+  const casinocoind = values[1]
   const twilio = values[2]
   const database = values[3]
 
@@ -36,12 +36,12 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
         if (balance < 0) balance = 0
         let usd_balance = price.get('usd', balance).toFixed(2)
         let eur_balance = price.get('eur', balance).toFixed(2)
-        body = `Your balance is:\n${balance} XRP`
+        body = `Your balance is:\n${balance} CSC`
         if (balance > 0) {
           body += `\n\nThis is ${usd_balance} USD / ${eur_balance} EUR.`
         }
         if (balance < 1) {
-          body += `\n\nDeposit XRP to: \n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
+          body += `\n\nDeposit CSC to: \n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
         }
         type = 'BALANCE'
       }
@@ -50,7 +50,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
        * DEPOSIT
        */
       if (message.body.toLowerCase().match(/d[e]*p[o]*s[i]*[t]*/)) {
-        body = `Deposit XRP to: \n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
+        body = `Deposit CSC to: \n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
         type = 'DEPOSIT'
       }
 
@@ -59,17 +59,17 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
        */
       if (message.body.toLowerCase().trim().match(/w[i]*t[h]*[d]*r[a]*w/)) {
         type = null
-        let ParsedMessage = (require('./src/WithdrawXrpParser'))(message.body)
+        let ParsedMessage = (require('./src/WithdrawCscParser'))(message.body)
 
         if (ParsedMessage.parsed.valid) {
           if (ParsedMessage.parsed.amount > user.balance) {
             type = null
-            body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${user.balance} XRP.`
+            body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${user.balance} CSC.`
           } else {
             console.log('>>> VALID [withdraw message] from [user]', ParsedMessage.parsed, user)
             message.authCode = ((Math.random() * 100000000) + '').substring(0,7)
             type = 'WITHDRAWAL'
-            body = `Please confirm withdrawing:\n${ParsedMessage.parsed.amount} XRP to:\n${ParsedMessage.parsed.wallet}, tag: ${ParsedMessage.parsed.tag} by replying within 1 hour:\n\n${message.authCode}`
+            body = `Please confirm withdrawing:\n${ParsedMessage.parsed.amount} CSC to:\n${ParsedMessage.parsed.wallet}, tag: ${ParsedMessage.parsed.tag} by replying within 1 hour:\n\n${message.authCode}`
           }
         } else {
           body = ParsedMessage.message + ` Use:\nwithdraw AMOUNT to WALLET TAG (tag optional).\n\nSample:\nwithdraw 2 to rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT 123`
@@ -81,25 +81,25 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
        */
       if (message.body.toLowerCase().trim().match(/^sen[dt]/)) {
         type = null
-        let ParsedMessage = (require('./src/SendXrpParser'))(message, price)
+        let ParsedMessage = (require('./src/SendCscParser'))(message, price)
         if (ParsedMessage.parsed.valid) {
           let usd_amount = ParsedMessage.parsed.amount.usd.toFixed(2)
           let eur_amount = ParsedMessage.parsed.amount.eur.toFixed(2)
 
-          if (user.balance >= ParsedMessage.parsed.amount.xrp) {
+          if (user.balance >= ParsedMessage.parsed.amount.csc) {
             message.authCode = ((Math.random() * 100000000) + '').substring(0,7)
             type = 'TRANSFER'
-            body = `Send ${ParsedMessage.parsed.amount.xrp} XRP (${usd_amount} USD / ${eur_amount} EUR) to \n${ParsedMessage.parsed.destination}. To confirm, reply these 7 digits (within 1 hour):\n\n${message.authCode}`
+            body = `Send ${ParsedMessage.parsed.amount.csc} CSC (${usd_amount} USD / ${eur_amount} EUR) to \n${ParsedMessage.parsed.destination}. To confirm, reply these 7 digits (within 1 hour):\n\n${message.authCode}`
             // body += `\n\nTo cancel, ignore this message.`
           } else {
             let balance = user.balance
             if (balance < 0) balance = 0
             if (balance === 0) {
               type = 'DEPOSIT'
-              body = `Sorry, you have no funds. \n\nDeposit XRP to:\n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
+              body = `Sorry, you have no funds. \n\nDeposit CSC to:\n${user.wallet}\n\nUse Destination Tag:\n${user.tag}\n\nDO NOT FORGET THE DESTINATION TAG!`
             } else {
               type = null
-              body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${balance} XRP.`
+              body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${balance} CSC.`
             }
           }
         } else {
@@ -122,7 +122,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
               txRequest = tx[0]
               // console.log('.txRequest', txRequest)
               if (txConfirm.responsetype === 'TRANSFER') {
-                ParsedMessage = (require('./src/SendXrpParser'))({
+                ParsedMessage = (require('./src/SendCscParser'))({
                   body: txRequest.message,
                   country: user.country
                 }, price)
@@ -138,14 +138,14 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                    * 7. Confirm to user
                    * 8. Confirm to recipient
                    */
-                  if (user.balance >= ParsedMessage.parsed.amount.xrp) {
+                  if (user.balance >= ParsedMessage.parsed.amount.csc) {
                     let destinationUser
                     database.confirmTx(txConfirm.id)
                       .then(dbResult => database.getUser(ParsedMessage.parsed.destination))
                       .then((destination) => {
                         destinationUser = destination
                         console.log('> DEPOSIT DESTINATION', destination)
-                        return database.insertConfirmedTransactions(message.origin, ParsedMessage.parsed.amount.xrp, user, destinationUser)
+                        return database.insertConfirmedTransactions(message.origin, ParsedMessage.parsed.amount.csc, user, destinationUser)
                       })
                       .then(dbResult => database.updateUserBalance(destinationUser.tag))
                       .then(dbResult => database.updateUserBalance(user.tag))
@@ -156,7 +156,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                         database.getUser(user.phone).then((u) => {
                           let usd_amount = price.get('usd', u.balance).toFixed(2)
                           let eur_amount = price.get('eur', u.balance).toFixed(2)
-                          let body = `Transfer complete, ${ParsedMessage.parsed.amount.xrp} XRP sent to ${destinationUser.phone}\n\nYour balance is now:\n${u.balance} XRP (${usd_amount} USD / ${eur_amount} EUR)`
+                          let body = `Transfer complete, ${ParsedMessage.parsed.amount.csc} CSC sent to ${destinationUser.phone}\n\nYour balance is now:\n${u.balance} CSC (${usd_amount} USD / ${eur_amount} EUR)`
                           let textFrom = user.lastno === null ? message.to : u.lastno
                           let m = { to: message.to, from: u.phone, origin: txRequest.id }
                           twilio.send(textFrom, user.phone, body).then((sid) => database.persistOutboundMessage(u, m, sid, body)).catch(err => console.log('Twilio Send SENDER err', err))
@@ -166,7 +166,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                         database.getUser(destinationUser.phone).then((u) => {
                           let usd_amount = price.get('usd', u.balance).toFixed(2)
                           let eur_amount = price.get('eur', u.balance).toFixed(2)
-                          let body = `You have received ${ParsedMessage.parsed.amount.xrp} XRP from ${user.phone}\n\nYour balance is now:\n${u.balance} XRP (${usd_amount} USD / ${eur_amount} EUR)`
+                          let body = `You have received ${ParsedMessage.parsed.amount.csc} CSC from ${user.phone}\n\nYour balance is now:\n${u.balance} CSC (${usd_amount} USD / ${eur_amount} EUR)`
                           let textFrom = destinationUser.lastno === null ? message.to : u.lastno
                           let m = { to: message.to, from: u.phone, origin: txRequest.id }
                           twilio.send(textFrom, destinationUser.phone, body).then((sid) => database.persistOutboundMessage(u, m, sid, body)).catch(err => console.log('Twilio Send RECIPIENT err', err))
@@ -174,12 +174,12 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                       })
                       .catch(err => console.log('!!!!!!! SHIT HITS THE FAN !!!!!!! TX CONFIRM ERROR', err))
                   } else {
-                    body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${user.balance} XRP, while ${ParsedMessage.parsed.amount.xrp} XRP is required to process this transaction.`
+                    body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${user.balance} CSC, while ${ParsedMessage.parsed.amount.csc} CSC is required to process this transaction.`
                     twilio.send(txRequest.to, txRequest.from, body).then((sid) => database.persistOutboundMessage(user, message, sid, body)).catch(err => console.log('Twilio Send err', err))
                   }
                 }
               } else if (txConfirm.responsetype === 'WITHDRAWAL') {
-                ParsedMessage = (require('./src/WithdrawXrpParser'))(txRequest.message)
+                ParsedMessage = (require('./src/WithdrawCscParser'))(txRequest.message)
                 if (ParsedMessage.parsed.valid) {
                   console.log('>>>> OK, Confirm [WITHDRAWAL] --', txConfirm, txRequest, ParsedMessage.parsed)
                   /**
@@ -201,18 +201,18 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                       .then((withdrawTransaction) => {
                         let txResponse
                         console.log('withdrawTransaction', withdrawTransaction)
-                        return rippled.withdraw(ParsedMessage.parsed.wallet, ParsedMessage.parsed.tag, ParsedMessage.parsed.amount)
+                        return casinocoind.withdraw(ParsedMessage.parsed.wallet, ParsedMessage.parsed.tag, ParsedMessage.parsed.amount)
                           .then((r) => {
                             txResponse = r
                             console.log('<<< txResponse [hash] for [tx]', txResponse, withdrawTx)
-                            return database.setXrplTxHash(withdrawTx, txResponse.hash)
+                            return database.setCsclTxHash(withdrawTx, txResponse.hash)
                           })
                           .then((dbResponse) => {
                             console.log('DONE :) All fine. Withdrawal processed. Now inform the user...')
                             return database.getUser(user.phone).then((u) => {
                               let usd_amount = price.get('usd', u.balance).toFixed(2)
                               let eur_amount = price.get('eur', u.balance).toFixed(2)
-                              let body = `Withdrawal complete, TX: ${txResponse.hash}\n\nYour new balance:\n${u.balance} XRP (${usd_amount} USD / ${eur_amount} EUR)`
+                              let body = `Withdrawal complete, TX: ${txResponse.hash}\n\nYour new balance:\n${u.balance} CSC (${usd_amount} USD / ${eur_amount} EUR)`
                               let textFrom = user.lastno === null ? message.to : u.lastno
                               let m = { to: message.to, from: u.phone, origin: txRequest.id }
                               twilio.send(textFrom, user.phone, body).then((sid) => database.persistOutboundMessage(u, m, sid, body)).catch(err => console.log('Twilio Send err', err))
@@ -224,7 +224,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
                       }).catch(err => console.log('!!!!!!! SHIT HITS THE FAN !!!!!!! WITHDRAW ERROR', err))
                   } else {
                     let blance = user.balance < 0 ? 0 : user.balance
-                    body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${balance} XRP, while ${ParsedMessage.parsed.amount} XRP is required to process this withdrawal.`
+                    body = `Sorry, your balance is insufficient.\n\nYour balance is currently ${balance} CSC, while ${ParsedMessage.parsed.amount} CSC is required to process this withdrawal.`
                     twilio.send(txRequest.to, txRequest.from, body).then((sid) => database.persistOutboundMessage(user, message, sid, body)).catch(err => console.log('Twilio Send err', err))
                   }
                 }
@@ -268,7 +268,7 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
    */
   twilio.on('price', (priceinfo) => {
     // deduct from balance
-    let charge = Math.floor(price.getXrp(priceinfo.unit, priceinfo.price) * config.billing.twilioFactor * 1000000) / 1000000
+    let charge = Math.floor(price.getCsc(priceinfo.unit, priceinfo.price) * config.billing.twilioFactor * 1000000) / 1000000
     database.updateMessagePrice(priceinfo, charge).then((result) => {
       console.log('<< Update price result', result)
     }).catch((err) => {
@@ -279,13 +279,13 @@ Promise.all([ _config, _rippled, _twilio, _database ]).then((values) => {
   /**
    * Watch for transactions
    */
-  rippled.on('transaction', (transaction) => {
+  casinocoind.on('transaction', (transaction) => {
     database.processTransaction(transaction).then((result) => {
-      console.log('== XRP Ledger [Transaction], [Processed]', transaction, result)
+      console.log('== CSC Ledger [Transaction], [Processed]', transaction, result)
 
       let usd_balance = price.get('usd', result.user.balance).toFixed(2)
       let eur_balance = price.get('eur', result.user.balance).toFixed(2)
-      body = `Your deposit of ${transaction.amount} XRP is received!\n\nYour new balance is ${result.user.balance} XRP, this is ${usd_balance} USD / ${eur_balance} EUR.`
+      body = `Your deposit of ${transaction.amount} CSC is received!\n\nYour new balance is ${result.user.balance} CSC, this is ${usd_balance} USD / ${eur_balance} EUR.`
 
       let message = {
         from: typeof result.user.lastno === 'string' ? result.user.lastno : config.twilio.defaultno,

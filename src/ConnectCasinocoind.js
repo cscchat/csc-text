@@ -1,28 +1,28 @@
 'use strict'
 
 const EventEmitter = require('events')
-const RippleClient = require('rippled-ws-client')
-const RippleSign = require('rippled-ws-client-sign')
+const CasinocoinClient = require('casinocoind-ws-client')
+const CasinocoinSign = require('casinocoind-ws-client-sign')
 
-class ConnectRippled extends EventEmitter {
+class ConnectCasinocoind extends EventEmitter {
   constructor (config) {
     let ledger
 
     super()
 
     return new Promise((resolve, reject) => {
-      console.log('Connecting to rippled', config.ripple.server)
-      new RippleClient(config.ripple.server).then((Connection) => {
+      console.log('Connecting to casinocoind', config.casinocoin.server)
+      new CasinocoinClient(config.casinocoin.server).then((Connection) => {
         Object.assign(this, {
           withdraw: (toWallet, toDtag, amount) => {
-            return new RippleSign({
+            return new CasinocoinSign({
               TransactionType: 'Payment',
-              Account: config.ripple.account,
+              Account: config.casinocoin.account,
               Destination: toWallet,
               DestinationTag: toDtag,
               Amount: amount * 1000000, // Amount in drops, so multiply (6 decimal positions)
               LastLedgerSequence: ledger + 15
-            }, config.ripple.keypair, Connection)
+            }, config.casinocoin.keypair, Connection)
           }
         })
 
@@ -30,7 +30,7 @@ class ConnectRippled extends EventEmitter {
         Connection.on('reconnect', (r) => {})
         Connection.on('close', (c) => {})
         Connection.on('ledger', (l) => {
-          // console.log(' ... Rippled ledger', l.ledger_index)
+          // console.log(' ... Casinocoind ledger', l.ledger_index)
           ledger = l.ledger_index // for withdrawal
           this.emit('ledger', l)
         })
@@ -60,7 +60,7 @@ class ConnectRippled extends EventEmitter {
         Connection.on('retry', (r) => {})
 
         Connection.send({ command: 'server_info' }).then((ServerInfo) => {
-          console.log('Connected to rippled', ServerInfo.info.pubkey_node, ServerInfo.info.build_version)
+          console.log('Connected to casinocoind', ServerInfo.info.pubkey_node, ServerInfo.info.build_version)
           resolve(this)
         }).catch((err) => {
           console.log('Server info error')
@@ -68,7 +68,7 @@ class ConnectRippled extends EventEmitter {
 
         Connection.send({
           command: 'subscribe',
-          accounts: [ config.ripple.account ]
+          accounts: [ config.casinocoin.account ]
         }).then((Response) => {
           // console.log('Subscribed', Response)
         }).catch((err) => {
@@ -81,4 +81,4 @@ class ConnectRippled extends EventEmitter {
   }
 }
 
-module.exports = ConnectRippled
+module.exports = ConnectCasinocoind

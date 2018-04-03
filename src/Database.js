@@ -1,4 +1,4 @@
-'use strict'
+Csc'use strict'
 
 const EventEmitter = require('events')
 const mysql = require('mysql')
@@ -15,25 +15,25 @@ class Database extends EventEmitter {
             user: config.database.mysql.username,
             password: config.database.mysql.password,
             database: config.database.mysql.database
-          })      
+          })
           connection.query(query, parameters, (error, results, fields) => {
             connection.end()
             if (error) {
               reject(error)
             } else {
               resolve(results)
-            }        
+            }
           })
         })
       },
-      insertConfirmedTransactions: (origin, xrp, fromUser, toUser) => {
+      insertConfirmedTransactions: (origin, csc, fromUser, toUser) => {
         let query = 'INSERT INTO `transactions` SET `user` = ?, `type` = ?, `amount` = ?, `valid` = 1, `origin` = ?, `from` = ?, `to` = ?'
-        return this.query(query, [ fromUser.tag, 'TRANSFER', xrp * -1, origin, fromUser.phone, toUser.phone ])
-          .then(result => this.query(query, [ toUser.tag, 'TRANSFER', xrp, origin, fromUser.phone, toUser.phone ]))
+        return this.query(query, [ fromUser.tag, 'TRANSFER', csc * -1, origin, fromUser.phone, toUser.phone ])
+          .then(result => this.query(query, [ toUser.tag, 'TRANSFER', csc, origin, fromUser.phone, toUser.phone ]))
       },
-      insertConfirmedWithdrawal: (origin, xrp, fromUser, walletAndDtag) => {
+      insertConfirmedWithdrawal: (origin, csc, fromUser, walletAndDtag) => {
         let query = 'INSERT INTO `transactions` SET `user` = ?, `type` = ?, `amount` = ?, `valid` = 1, `origin` = ?, `from` = ?, `to` = ?'
-        return this.query(query, [ fromUser.tag, 'WITHDRAW', xrp * -1, origin, fromUser.phone, walletAndDtag ])
+        return this.query(query, [ fromUser.tag, 'WITHDRAW', csc * -1, origin, fromUser.phone, walletAndDtag ])
       },
       getTransaction: (txId) => {
         return this.query('SELECT * FROM `transactions` WHERE `id` = ?', [ txId ])
@@ -49,7 +49,7 @@ class Database extends EventEmitter {
           this.query(userQuery, userQueryBinding).then((UserInfo) => {
             if (UserInfo.length < 1) {
               // Create user
-              this.query('INSERT INTO `users` (`phone`, `wallet`) VALUES (?, ?)', [ phone, config.ripple.account ]).then((CreatedUser) => {
+              this.query('INSERT INTO `users` (`phone`, `wallet`) VALUES (?, ?)', [ phone, config.casinocoin.account ]).then((CreatedUser) => {
                 if (typeof CreatedUser.insertId !== 'undefined' && CreatedUser.insertId > 0) {
                   this.query(userQuery, userQueryBinding).then((UserInfo) => {
                     if (UserInfo.length < 1) {
@@ -93,19 +93,19 @@ class Database extends EventEmitter {
       confirmTx: (id) => {
         return this.query('UPDATE `transactions` SET `valid` = 1 WHERE `id` = ?', [ id ])
       },
-      setXrplTxHash: (tx, hash) => {
+      setCsclTxHash: (tx, hash) => {
         return this.query('UPDATE `transactions` SET `transaction` = ? WHERE `id` = ?', [ hash, tx ])
       },
       updateUserBalance: (user) => {
-        // ALWAYS charge `twofactor` records, since `valid` is used to invalidate the record when used, but if there's an 
+        // ALWAYS charge `twofactor` records, since `valid` is used to invalidate the record when used, but if there's an
         // amount, it's the Text charge - and the Text charge needs to be charged to the user.
         return this.query('SELECT SUM(amount) as `balance` FROM `transactions` WHERE (`valid` = 1 OR (`valid` = 0 AND `twofactor` IS NOT NULL)) AND `user` = ?', [ user ])
           .then(result => this.query('UPDATE `users` SET `balance` = ? WHERE `tag` = ?', [ result[0].balance, user ]))
           .then(result => this.query('SELECT * FROM `users` WHERE `tag` = ?', [ user ]))
       },
-      updateMessagePrice: (priceinfo, xrp) => {
+      updateMessagePrice: (priceinfo, csc) => {
         let user
-        let amount = xrp * -1
+        let amount = csc * -1
         if (isNaN(amount)) {
           amount = null
           console.log('-- Invalid price', priceinfo)
@@ -121,7 +121,7 @@ class Database extends EventEmitter {
       },
       processTransaction: (transaction) => {
         return new Promise((resolve, reject) => {
-          this.query('SELECT * FROM `users` WHERE (`wallet` = ? AND `tag` = ?) OR (`wallet` = ? AND `tag` = ?)', [ 
+          this.query('SELECT * FROM `users` WHERE (`wallet` = ? AND `tag` = ?) OR (`wallet` = ? AND `tag` = ?)', [
             transaction.from, transaction.tag,
             transaction.to, transaction.tag
           ]).then((result) => {
@@ -141,7 +141,7 @@ class Database extends EventEmitter {
         })
       }
     })
-    
+
     return new Promise((resolve, reject) => {
       this.query('SELECT 1 + 1 AS solution').then((results) => {
         if (results[0].solution === 2) {
